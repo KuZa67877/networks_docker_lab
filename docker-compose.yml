@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - python_deps:/app/venv
+    env_file:
+      - .env
+    depends_on:
+      - db
+    command: >
+      bash -c "
+          if [ ! -d '/app/migrations' ]; then
+            flask db init;
+          fi &&
+          flask db upgrade &&
+          python main.py"
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  python_deps:
